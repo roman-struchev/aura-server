@@ -124,36 +124,26 @@ const awareness = provider.awareness
 
 // y-monaco / the awareness convention expects the display name and color
 // nested inside a "user" object (specification.md §4.2), not as flat fields.
+// No cursor/selection fields here - MonacoBinding publishes its own (see below).
 awareness.setLocalState({
   user: { name: pickDisplayName(), color: pickColor() },
-  role,
-  cursor: null,
-  selection: null
+  role
 })
 
+// Deliberately not tracking cursor/selection ourselves here (no
+// onDidChangeCursorPosition/onDidChangeCursorSelection handlers calling
+// awareness.setLocalState): y-monaco's MonacoBinding already does this
+// internally - it publishes its own 'selection' awareness field (as Yjs
+// relative positions, which stay valid across remote edits, unlike raw
+// line/column numbers) and renders remote cursors/selections as decorations
+// from it. A second, independent setLocalState() firing on the same
+// cursor-change events raced with MonacoBinding's own handler and its
+// decoration re-render, which Monaco detected as recursive
+// deltaDecorations calls and threw on - and since that happened inside a
+// Yjs observer callback, it could abort a remote edit application partway
+// through, corrupting the document. Let MonacoBinding own this exclusively.
 // eslint-disable-next-line no-new
 new MonacoBinding(ytext, editorModel, new Set([editor]), awareness)
-
-editor.onDidChangeCursorPosition((e) => {
-  const local = awareness.getLocalState() || {}
-  awareness.setLocalState({
-    ...local,
-    cursor: { line: e.position.lineNumber, column: e.position.column }
-  })
-})
-
-editor.onDidChangeCursorSelection((e) => {
-  const local = awareness.getLocalState() || {}
-  awareness.setLocalState({
-    ...local,
-    selection: {
-      startLine: e.selection.startLineNumber,
-      startColumn: e.selection.startColumn,
-      endLine: e.selection.endLineNumber,
-      endColumn: e.selection.endColumn
-    }
-  })
-})
 
 // -----------------------------------------------------------------------
 // Participant panel

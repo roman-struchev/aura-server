@@ -25,8 +25,8 @@ What's implemented, under `src/main/java/com/struchev/auraserver/worktogether/`:
   expiry/revocation/session end (spec §4, §5).
 - **Guest-facing editor page** (`/j/{linkId}`) — a self-hosted Monaco +
   `y-websocket` + `y-monaco` page (source in `frontend/work-together-guest/`,
-  built assets in `src/main/resources/static/work-together/`); see that
-  directory's own notes for the rebuild command.
+  built assets committed under `src/main/resources/static/work-together/`);
+  see [Running](#running) below for the rebuild command.
 - Signed, opaque tokens (HMAC-SHA256) carry role/session/link claims — no
   accounts, matching the spec's "possession of the link" trust model.
 - In-memory only: sessions/links/connections live in process memory and are
@@ -51,6 +51,19 @@ describing the AuraPad project with a link to its GitHub repo.
 
 ```
 ./gradlew bootRun
+```
+
+The guest editor's static assets (`src/main/resources/static/work-together/`
+and `src/main/resources/worktogether/guest-template.html`) are pre-built and
+committed to the repo — Gradle does not build the frontend, so plain
+`bootRun` is enough as long as you haven't touched
+`frontend/work-together-guest/`. If you do change that frontend, rebuild and
+re-copy the assets before running:
+
+```
+cd frontend/work-together-guest
+npm install
+npm run build
 ```
 
 Deployment is via the existing GitHub Actions workflow
