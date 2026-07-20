@@ -95,7 +95,7 @@ const monacoNs = window.monaco
 // Force LF globally for any model created in Monaco (prevents CRLF offset drift)
 monacoNs.editor.onDidCreateModel((model) => {
   model.setEOL(monacoNs.editor.EndOfLineSequence.LF)
-  model.onDidChangeModelContent(() => {
+  model.onDidChangeContent(() => {
     if (model.getEndOfLineSequence() !== monacoNs.editor.EndOfLineSequence.LF) {
       model.setEOL(monacoNs.editor.EndOfLineSequence.LF)
     }
