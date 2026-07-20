@@ -91,7 +91,19 @@ if (role === 'read') {
 // -----------------------------------------------------------------------
 
 const monacoNs = window.monaco
-const editorModel = monacoNs.editor.createModel(initialContent, language)
+
+// Force LF globally for any model created in Monaco (prevents CRLF offset drift)
+monacoNs.editor.onDidCreateModel((model) => {
+  model.setEOL(monacoNs.editor.EndOfLineSequence.LF)
+  model.onDidChangeModelContent(() => {
+    if (model.getEndOfLineSequence() !== monacoNs.editor.EndOfLineSequence.LF) {
+      model.setEOL(monacoNs.editor.EndOfLineSequence.LF)
+    }
+  })
+})
+
+const normalizedContent = initialContent.replace(/\r\n|\r/g, '\n')
+const editorModel = monacoNs.editor.createModel(normalizedContent, language)
 const editor = monacoNs.editor.create(editorHost, {
   model: editorModel,
   automaticLayout: true,
