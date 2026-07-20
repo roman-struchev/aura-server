@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AuraPad</title>
-  <meta name="description" content="AuraPad — a local-first desktop code editor. This site hosts its Work Together collaborative-editing backend." />
+  <meta name="description" content="AuraPad is a desktop code editor that runs locally on your machine." />
   <style>
     :root {
       --bg: #ffffff;
@@ -12,7 +12,6 @@
       --muted: #6b7280;
       --border: #e5e7eb;
       --accent: #2563eb;
-      --card: #f8fafc;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -21,7 +20,6 @@
         --muted: #9aa1ac;
         --border: #2a2d33;
         --accent: #5b8def;
-        --card: #1b1e24;
       }
     }
     * { box-sizing: border-box; }
@@ -37,9 +35,7 @@
     h1 { font-size: 1.8rem; margin: 0 0 0.75rem; }
     p.lede { color: var(--muted); font-size: 1.05rem; line-height: 1.55; margin: 0 0 1.75rem; }
     .screenshot {
-      width: 100%; border-radius: 0.75rem; border: 1px solid var(--border);
-      display: block; margin-bottom: 1.75rem;
-      background: var(--card);
+      width: 100%; display: block; margin-bottom: 1.75rem;
     }
     .links { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
     a.button {
@@ -48,15 +44,11 @@
       background: var(--accent); color: #fff; text-decoration: none;
       font-size: 0.95rem; font-weight: 500;
     }
-    a.button.secondary {
-      background: transparent; color: var(--fg); border: 1px solid var(--border);
-    }
     .note {
       border-top: 1px solid var(--border); padding-top: 1.5rem;
       color: var(--muted); font-size: 0.9rem; line-height: 1.5;
     }
     .note code { color: var(--fg); }
-    footer { color: var(--muted); font-size: 0.8rem; margin-top: 2rem; }
     a { color: var(--accent); }
   </style>
 </head>
@@ -64,8 +56,8 @@
   <main>
     <h1>AuraPad</h1>
     <p class="lede">
-      A local-first desktop code editor. Everything — dictation, translation, git, terminal —
-      runs on your machine; nothing is required to leave it.
+      A code editor that runs on your own machine, with dictation, translation, git and a
+      terminal built in. Nothing leaves your computer.
     </p>
 
     <img class="screenshot" alt="AuraPad screenshot"
@@ -76,15 +68,11 @@
     </div>
 
     <div class="note">
-      This server (<code>aura.struchev.site</code>) hosts the <strong>Work Together</strong> backend —
-      the collaborative-editing relay AuraPad talks to when you share a file: it mints
-      time-limited links and serves the live editor page a recipient opens in their browser,
-      with no AuraPad install required. See
-      <a href="https://github.com/roman-struchev/aura-pad/tree/main/docs/edit-together">docs/edit-together</a>
-      in the repo for how it works.
+      This is also where AuraPad's <strong>Work Together</strong> feature lives: when you share
+      a file, this is what creates the link and the page the other person opens — no install
+      needed on their end. There's more on how it works in
+      <a href="https://github.com/roman-struchev/aura-pad/tree/main/docs/edit-together">docs/edit-together</a>.
     </div>
-
-    <footer>aura-server</footer>
   </main>
 </body>
 </html>
