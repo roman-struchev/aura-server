@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>__FILE_PATH__ — Work Together</title>
+  <link rel="stylesheet" href="/work-together/app.css" />
+  <style>
+    /* Fallback in case app.css hasn't loaded yet - avoids a flash of unstyled content. */
+    html, body { margin: 0; padding: 0; background: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      html, body { background: #1e1e1e; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    window.__WORK_TOGETHER__ = {
+      sessionId: "__SESSION_ID__",
+      token: "__TOKEN__",
+      role: "__ROLE__",
+      language: "__LANGUAGE__",
+      filePath: "__FILE_PATH__",
+      initialContent: __INITIAL_CONTENT_JSON__
+    };
+  </script>
+
+  <script src="/work-together/vs/loader.js"></script>
+  <script>
+    require.config({ paths: { vs: '/work-together/vs' } });
+    require(['vs/editor/editor.main'], function () {
+      // Monaco is now available as window.monaco. Load the bundled app
+      // logic (Yjs / y-websocket / y-monaco wiring + UI) now.
+      var s = document.createElement('script');
+      s.src = '/work-together/app.js';
+      document.body.appendChild(s);
+    });
+  </script>
+</body>
+</html>

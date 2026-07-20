@@ -1,0 +1,207 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+.wt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: #f7f7f8;
+  flex-shrink: 0;
+  min-height: 40px;
+}
+
+.wt-filepath {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wt-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.wt-status {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #e0e0e0;
+  color: #555;
+  white-space: nowrap;
+}
+
+.wt-status-connected {
+  background: #dff3e6;
+  color: #1c7a43;
+}
+
+.wt-status-connecting {
+  background: #fff3d6;
+  color: #8a6100;
+}
+
+.wt-status-disconnected {
+  background: #fde3e3;
+  color: #a02020;
+}
+
+.wt-participants {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 320px;
+}
+
+.wt-participant {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 2px 8px 2px 6px;
+  color: #444;
+  white-space: nowrap;
+}
+
+.wt-participant-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.wt-banner {
+  padding: 8px 16px;
+  font-size: 13px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.wt-banner-readonly {
+  background: #fff3d6;
+  color: #7a5900;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.wt-banner-reconnecting {
+  background: #fde3e3;
+  color: #a02020;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.wt-editor {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.wt-terminal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background: #f7f7f8;
+}
+
+.wt-terminal-box {
+  font-size: 18px;
+  color: #333;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 32px 48px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background: #1e1e1e;
+    color: #ddd;
+  }
+
+  .wt-header {
+    background: #252526;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .wt-filepath {
+    color: #ddd;
+  }
+
+  .wt-status {
+    background: #3a3a3a;
+    color: #ccc;
+  }
+
+  .wt-status-connected {
+    background: #1c3a28;
+    color: #6bd18a;
+  }
+
+  .wt-status-connecting {
+    background: #4a3c14;
+    color: #e8c96a;
+  }
+
+  .wt-status-disconnected {
+    background: #4a1f1f;
+    color: #e88a8a;
+  }
+
+  .wt-participant {
+    background: #2d2d2d;
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #ccc;
+  }
+
+  .wt-banner-readonly {
+    background: #4a3c14;
+    color: #e8c96a;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .wt-banner-reconnecting {
+    background: #4a1f1f;
+    color: #e88a8a;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .wt-terminal {
+    background: #1e1e1e;
+  }
+
+  .wt-terminal-box {
+    background: #2d2d2d;
+    color: #ddd;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+}

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AuraPad</title>
+  <meta name="description" content="AuraPad — a local-first desktop code editor. This site hosts its Work Together collaborative-editing backend." />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #1e1e1e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --card: #f8fafc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14161a;
+        --fg: #e6e6e6;
+        --muted: #9aa1ac;
+        --border: #2a2d33;
+        --accent: #5b8def;
+        --card: #1b1e24;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; min-height: 100%;
+      background: var(--bg); color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    main {
+      max-width: 42rem; margin: 0 auto;
+      padding: 4rem 1.5rem 3rem;
+    }
+    h1 { font-size: 1.8rem; margin: 0 0 0.75rem; }
+    p.lede { color: var(--muted); font-size: 1.05rem; line-height: 1.55; margin: 0 0 1.75rem; }
+    .screenshot {
+      width: 100%; border-radius: 0.75rem; border: 1px solid var(--border);
+      display: block; margin-bottom: 1.75rem;
+      background: var(--card);
+    }
+    .links { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+    a.button {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.6rem 1.1rem; border-radius: 0.5rem;
+      background: var(--accent); color: #fff; text-decoration: none;
+      font-size: 0.95rem; font-weight: 500;
+    }
+    a.button.secondary {
+      background: transparent; color: var(--fg); border: 1px solid var(--border);
+    }
+    .note {
+      border-top: 1px solid var(--border); padding-top: 1.5rem;
+      color: var(--muted); font-size: 0.9rem; line-height: 1.5;
+    }
+    .note code { color: var(--fg); }
+    footer { color: var(--muted); font-size: 0.8rem; margin-top: 2rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>AuraPad</h1>
+    <p class="lede">
+      A local-first desktop code editor. Everything — dictation, translation, git, terminal —
+      runs on your machine; nothing is required to leave it.
+    </p>
+
+    <img class="screenshot" alt="AuraPad screenshot"
+         src="https://raw.githubusercontent.com/roman-struchev/aura-pad/main/docs/assets/screenshot.png" />
+
+    <div class="links">
+      <a class="button" href="https://github.com/roman-struchev/aura-pad">View on GitHub</a>
+    </div>
+
+    <div class="note">
+      This server (<code>aura.struchev.site</code>) hosts the <strong>Work Together</strong> backend —
+      the collaborative-editing relay AuraPad talks to when you share a file: it mints
+      time-limited links and serves the live editor page a recipient opens in their browser,
+      with no AuraPad install required. See
+      <a href="https://github.com/roman-struchev/aura-pad/tree/main/docs/edit-together">docs/edit-together</a>
+      in the repo for how it works.
+    </div>
+
+    <footer>aura-server</footer>
+  </main>
+</body>
+</html>
