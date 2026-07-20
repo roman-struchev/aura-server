@@ -7,6 +7,7 @@ services:
     network_mode: host
     environment:
       - server.port=${PORT:-10005}
+      - WORKTOGETHER_TOKEN_SECRET=${WORKTOGETHER_TOKEN_SECRET:-}
     restart: always
     deploy:
       resources:
