@@ -24,7 +24,7 @@ jobs:
           username: ${{ secrets.DOCKER_PUBLISH_REGISTRY_USERNAME }}
           password: ${{ secrets.DOCKER_PUBLISH_REGISTRY_PASSWORD }}
 
-  deploy-mne:
+  deploy:
     needs: publish
     runs-on: ubuntu-latest
     steps:
@@ -35,7 +35,7 @@ jobs:
         with:
           host: 31.186.136.15
           username: root
-          port: 11022
+          port: 22
           key: ${{ secrets.SSH_PRIVATE_KEY_PERSONAL }}
           source: docker-compose.yml
           target: ~/aura-server/
@@ -45,7 +45,7 @@ jobs:
         with:
           host: 31.186.136.15
           username: root
-          port: 11022
+          port: 22
           key: ${{ secrets.SSH_PRIVATE_KEY_PERSONAL }}
           script: |
             cd aura-server
