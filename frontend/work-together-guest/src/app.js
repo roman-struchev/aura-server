@@ -96,7 +96,7 @@ const editor = monacoNs.editor.create(editorHost, {
   model: editorModel,
   automaticLayout: true,
   readOnly: role === 'read',
-  minimap: { enabled: true },
+  minimap: { enabled: false },
   theme: 'vs-dark'
 })
 
