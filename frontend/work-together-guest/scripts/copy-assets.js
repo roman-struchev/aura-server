@@ -5,7 +5,7 @@
  *   dist/app.js                          -> src/main/resources/static/work-together/app.js
  *   src/app.css                          -> src/main/resources/static/work-together/app.css
  *   node_modules/monaco-editor/min/vs/*  -> src/main/resources/static/work-together/vs/
- *   src/guest-template.html              -> src/main/resources/worktogether/guest-template.html
+ *   src/guest-template.html              -> src/main/resources/templates/worktogether/guest-template.html
  *
  * This script only touches files under those four destinations (plus
  * creating the parent directories if missing) - it never touches Java
@@ -20,7 +20,7 @@ const projectRoot = path.resolve(__dirname, '..')
 const repoRoot = path.resolve(projectRoot, '..', '..')
 
 const staticDir = path.join(repoRoot, 'src', 'main', 'resources', 'static', 'work-together')
-const resourcesDir = path.join(repoRoot, 'src', 'main', 'resources', 'worktogether')
+const resourcesDir = path.join(repoRoot, 'src', 'main', 'resources', 'templates', 'worktogether')
 
 function rmrf (dir) {
   if (fs.existsSync(dir)) {
