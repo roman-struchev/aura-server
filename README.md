@@ -64,6 +64,7 @@ duplicate of the repo's own README.
 | Property | Default | Purpose |
 |---|---|---|
 | `worktogether.token-secret` (env `WORKTOGETHER_TOKEN_SECRET`) | random at startup | HMAC key signing tokens; set this for tokens to survive a restart |
+| `worktogether.public-base-url` (env `WORKTOGETHER_PUBLIC_BASE_URL`) | `https://aura.struchev.site` | Fixed host used to build share/join URLs — deliberately **not** derived from the request's `Host` header, so a Host app calling this server through an internal address (e.g. `host.docker.internal:10005`) never leaks that into a guest-facing link |
 | `worktogether.max-session-ttl-seconds` | `604800` (7 days) | Hard ceiling on `maxTtlSeconds` |
 | `worktogether.cleanup-interval-seconds` | `15` | How often expired sessions/links are swept |
 | `worktogether.rate-limit.max-per-minute` | `30` | Per-IP cap on `POST /v1/sessions` |

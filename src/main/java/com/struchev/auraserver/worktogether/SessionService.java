@@ -43,6 +43,11 @@ public class SessionService {
     private final long maxSessionTtlCeilingSeconds;
 
     private final ConcurrentHashMap<String, WtSession> sessions = new ConcurrentHashMap<>();
+    // Reverse index so the short guest URL (/join/{linkId}) can be resolved
+    // without needing the full signed token round-tripped through it. Kept
+    // in sync with `sessions`: entries are removed when the owning session
+    // is torn down (see the private endSession(WtSession) overload).
+    private final ConcurrentHashMap<String, String> linkIdToSessionId = new ConcurrentHashMap<>();
 
     public SessionService(TokenService tokenService, ObjectMapper objectMapper,
                            @Value("${worktogether.max-session-ttl-seconds:604800}") long maxSessionTtlCeilingSeconds) {
@@ -101,9 +106,14 @@ public class SessionService {
         String linkId = IdGenerator.next("lnk_");
         WtLink link = new WtLink(linkId, sessionId, request.role(), now, expiresAt);
         session.addLink(link);
+        linkIdToSessionId.put(linkId, sessionId);
 
         String token = tokenService.mint(sessionId, request.role(), linkId, expiresAt);
-        String url = publicBaseUrl + "/join/" + token;
+        // The link itself (not the raw signed token) is what's embedded in the
+        // shareable URL - much shorter, and just as unguessable (same amount
+        // of random entropy). GuestPageController resolves it back to a
+        // session/link and mints an equivalent WS token on the fly.
+        String url = publicBaseUrl + "/join/" + linkId;
         return new MintLinkResponse(linkId, token, url, request.role(), expiresAt);
     }
 
@@ -132,6 +142,9 @@ public class SessionService {
         if (session.end()) {
             closeConnections(session, c -> true, WorkTogetherCloseCodes.SESSION_ENDED);
             sessions.remove(session.sessionId());
+            for (WtLink link : session.links()) {
+                linkIdToSessionId.remove(link.linkId());
+            }
             log.info("Ended session {}", session.sessionId());
         }
     }
@@ -150,9 +163,26 @@ public class SessionService {
                 links, participants);
     }
 
-    /** Session metadata needed to pre-render the guest page (specification.md §6). Read-only, no auth check. */
-    public WtSession findSessionForGuestPage(String sessionId) {
-        return sessions.get(sessionId);
+    /**
+     * Resolves the short {@code linkId} from a guest join URL back to its session/link
+     * (specification.md §6) - or {@code null} if it never existed or its session is gone.
+     * Doesn't check expiry/revocation itself; callers render the appropriate error page
+     * based on {@link WtLink#revoked()}/{@link WtLink#expiresAt()} and {@link WtSession#ended()}.
+     */
+    public GuestLinkContext resolveGuestLink(String linkId) {
+        String sessionId = linkIdToSessionId.get(linkId);
+        if (sessionId == null) {
+            return null;
+        }
+        WtSession session = sessions.get(sessionId);
+        if (session == null) {
+            return null;
+        }
+        WtLink link = session.link(linkId);
+        if (link == null) {
+            return null;
+        }
+        return new GuestLinkContext(session, link);
     }
 
     // ---- §4 WebSocket connect ----

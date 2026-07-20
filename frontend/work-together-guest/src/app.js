@@ -24,6 +24,7 @@ const token = config.token
 const role = config.role === 'write' ? 'write' : 'read'
 const language = config.language || 'plaintext'
 const filePath = config.filePath || 'untitled'
+const fileName = filePath.split(/[\\/]/).pop() || filePath
 const initialContent = typeof config.initialContent === 'string' ? config.initialContent : ''
 
 const PARTICIPANT_COLORS = [
@@ -50,12 +51,20 @@ header.className = 'wt-header'
 
 const filePathEl = document.createElement('div')
 filePathEl.className = 'wt-filepath'
-filePathEl.textContent = filePath
+filePathEl.textContent = fileName
+filePathEl.title = filePath
 header.appendChild(filePathEl)
 
 const headerRight = document.createElement('div')
 headerRight.className = 'wt-header-right'
 header.appendChild(headerRight)
+
+const readonlyBadge = document.createElement('div')
+readonlyBadge.className = 'wt-badge wt-badge-readonly'
+readonlyBadge.textContent = '👁 read-only'
+readonlyBadge.title = 'You can view and follow along, but not edit.'
+readonlyBadge.style.display = 'none'
+headerRight.appendChild(readonlyBadge)
 
 const statusEl = document.createElement('div')
 statusEl.className = 'wt-status'
@@ -66,27 +75,15 @@ const participantsEl = document.createElement('div')
 participantsEl.className = 'wt-participants'
 headerRight.appendChild(participantsEl)
 
-const readonlyBanner = document.createElement('div')
-readonlyBanner.className = 'wt-banner wt-banner-readonly'
-readonlyBanner.textContent = '👁 Read-only — you can view and follow along, but not edit.'
-readonlyBanner.style.display = 'none'
-
-const reconnectingBanner = document.createElement('div')
-reconnectingBanner.className = 'wt-banner wt-banner-reconnecting'
-reconnectingBanner.textContent = 'Reconnecting…'
-reconnectingBanner.style.display = 'none'
-
 const editorHost = document.createElement('div')
 editorHost.id = 'wt-editor'
 editorHost.className = 'wt-editor'
 
 root.appendChild(header)
-root.appendChild(readonlyBanner)
-root.appendChild(reconnectingBanner)
 root.appendChild(editorHost)
 
 if (role === 'read') {
-  readonlyBanner.style.display = 'block'
+  readonlyBadge.style.display = 'inline-flex'
 }
 
 // -----------------------------------------------------------------------
@@ -100,9 +97,7 @@ const editor = monacoNs.editor.create(editorHost, {
   automaticLayout: true,
   readOnly: role === 'read',
   minimap: { enabled: true },
-  theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'vs-dark'
-    : 'vs'
+  theme: 'vs-dark'
 })
 
 // -----------------------------------------------------------------------
@@ -215,11 +210,20 @@ function showTerminalMessage (message) {
   document.body.appendChild(wrap)
 }
 
+// If we never manage a single successful connection after a handful of
+// attempts, something more permanent is wrong (link died between page load
+// and now, proxy dropping the upgrade, server unreachable, ...). Reloading
+// re-runs the server-side link check in GuestPageController, which will
+// either show a clean "expired/revoked/ended" page or just try again with a
+// clean slate - better than looping "reconnecting" forever with no way out.
+const MAX_ATTEMPTS_BEFORE_RELOAD = 5
+let attemptsSinceConnected = 0
+
 provider.on('status', ({ status }) => {
   statusEl.textContent = status
   statusEl.className = 'wt-status wt-status-' + status
   if (status === 'connected') {
-    reconnectingBanner.style.display = 'none'
+    attemptsSinceConnected = 0
   }
 })
 
@@ -230,8 +234,12 @@ provider.on('connection-close', (event) => {
     showTerminalMessage(TERMINAL_MESSAGES[code])
     return
   }
-  // Anything else (network blip, server restart, etc.): let the provider's
-  // built-in exponential-backoff reconnect proceed; just surface a small
-  // transient indicator.
-  reconnectingBanner.style.display = 'block'
+  // Anything else (network blip, server restart, ...): let the provider's
+  // built-in exponential-backoff reconnect proceed; the status pill above
+  // already reflects "connecting"/"disconnected" - unless it's been failing
+  // for a while, in which case fall back to a reload (see comment above).
+  attemptsSinceConnected += 1
+  if (attemptsSinceConnected >= MAX_ATTEMPTS_BEFORE_RELOAD) {
+    window.location.reload()
+  }
 })

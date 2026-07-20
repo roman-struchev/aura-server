@@ -1,11 +1,9 @@
 package com.struchev.auraserver.worktogether.guest;
 
 import tools.jackson.databind.ObjectMapper;
-import com.struchev.auraserver.worktogether.Role;
+import com.struchev.auraserver.worktogether.GuestLinkContext;
 import com.struchev.auraserver.worktogether.SessionService;
-import com.struchev.auraserver.worktogether.TokenClaims;
 import com.struchev.auraserver.worktogether.TokenService;
-import com.struchev.auraserver.worktogether.exception.InvalidTokenException;
 import com.struchev.auraserver.worktogether.model.WtLink;
 import com.struchev.auraserver.worktogether.model.WtSession;
 import org.springframework.core.io.ClassPathResource;
@@ -24,8 +22,12 @@ import java.time.Instant;
 
 /**
  * Serves the guest-facing collaborative editor page a share link resolves to
- * (specification.md §6). The page itself never talks to the REST API — it
- * embeds enough server-verified state to open the WebSocket directly.
+ * (specification.md §6). The URL only carries the link's short id, not the
+ * full signed token - much shorter to share, and just as unguessable since
+ * the id itself is high-entropy random (see SessionService#mintLink). This
+ * controller resolves that id back to its session/link and mints an
+ * equivalent WS token on the fly (deterministic: same claims + secret always
+ * produce the same signature, so there's nothing to persist).
  */
 @Controller
 public class GuestPageController {
@@ -44,26 +46,16 @@ public class GuestPageController {
         this.errorTemplate = readClasspathResource("worktogether/error-template.html");
     }
 
-    @GetMapping("/join/{token}")
-    public ResponseEntity<String> joinSession(@PathVariable String token) {
-        TokenClaims claims;
-        try {
-            claims = tokenService.verify(token);
-        } catch (InvalidTokenException e) {
+    @GetMapping("/join/{linkId}")
+    public ResponseEntity<String> joinSession(@PathVariable String linkId) {
+        GuestLinkContext ctx = sessionService.resolveGuestLink(linkId);
+        if (ctx == null) {
             return errorPage("This link is invalid.");
         }
-        if (claims.role() == Role.HOST) {
-            // Host tokens authenticate the AuraPad app's own connection, not a shareable join link.
-            return errorPage("This link is invalid.");
-        }
-
-        WtSession session = sessionService.findSessionForGuestPage(claims.sessionId());
-        if (session == null || session.ended()) {
+        WtSession session = ctx.session();
+        WtLink link = ctx.link();
+        if (session.ended()) {
             return errorPage("This session has ended.");
-        }
-        WtLink link = session.link(claims.linkId());
-        if (link == null) {
-            return errorPage("This link is invalid.");
         }
         if (link.revoked()) {
             return errorPage("This link was revoked by the host.");
@@ -72,27 +64,29 @@ public class GuestPageController {
             return errorPage("This link has expired.");
         }
 
+        String wsToken = tokenService.mint(session.sessionId(), link.role(), link.linkId(), link.expiresAt());
+
         String html = guestTemplate
                 .replace("__FILE_PATH_HTML__", htmlEscape(session.filePath()))
                 .replace("__SESSION_ID_JSON__", jsLiteral(session.sessionId()))
-                .replace("__TOKEN_JSON__", jsLiteral(token))
-                .replace("__ROLE_JSON__", jsLiteral(claims.role().value()))
+                .replace("__TOKEN_JSON__", jsLiteral(wsToken))
+                .replace("__ROLE_JSON__", jsLiteral(link.role().value()))
                 .replace("__LANGUAGE_JSON__", jsLiteral(session.language()))
                 .replace("__FILE_PATH_JSON__", jsLiteral(session.filePath()))
                 .replace("__INITIAL_CONTENT_JSON__", jsLiteral(session.content()));
 
-        return htmlResponse(HttpStatus.OK, html);
+        return htmlResponse(html);
     }
 
     private ResponseEntity<String> errorPage(String message) {
         String html = errorTemplate.replace("__MESSAGE_HTML__", htmlEscape(message));
-        return htmlResponse(HttpStatus.OK, html);
+        return htmlResponse(html);
     }
 
-    private ResponseEntity<String> htmlResponse(HttpStatus status, String html) {
+    private ResponseEntity<String> htmlResponse(String html) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_HTML);
-        return new ResponseEntity<>(html, headers, status);
+        return new ResponseEntity<>(html, headers, HttpStatus.OK);
     }
 
     /** Encodes {@code value} as a self-quoting JSON string literal, hardened against breaking out of the enclosing {@code <script>} tag. */

@@ -67,10 +67,28 @@ class SessionServiceTest {
         MintLinkResponse link = sessionService.mintLink(session.sessionId(),
                 new MintLinkRequest(Role.READ, 60L), "https://example.com");
 
-        assertThat(link.url()).isEqualTo("https://example.com/join/" + link.token());
+        assertThat(link.url()).isEqualTo("https://example.com/join/" + link.linkId());
         ConnectAuth auth = sessionService.resolveConnectAuth(session.sessionId(), link.token());
         assertThat(auth.role()).isEqualTo(Role.READ);
         assertThat(auth.linkId()).isEqualTo(link.linkId());
+    }
+
+    @Test
+    void guestLinkResolvesToSessionAndLink() {
+        CreateSessionResponse session = createSession();
+        MintLinkResponse link = sessionService.mintLink(session.sessionId(),
+                new MintLinkRequest(Role.WRITE, 60L), "https://example.com");
+
+        GuestLinkContext ctx = sessionService.resolveGuestLink(link.linkId());
+
+        assertThat(ctx).isNotNull();
+        assertThat(ctx.session().sessionId()).isEqualTo(session.sessionId());
+        assertThat(ctx.link().linkId()).isEqualTo(link.linkId());
+    }
+
+    @Test
+    void unknownGuestLinkResolvesToNull() {
+        assertThat(sessionService.resolveGuestLink("lnk_does-not-exist")).isNull();
     }
 
     @Test
