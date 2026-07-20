@@ -1,11 +1,20 @@
+:root {
+  --bg: #12121a;
+  --bg-2: #16161f;
+  --fg: #ecebf5;
+  --muted: #9896ac;
+  --border: #29283a;
+  --accent: #7c8cff;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: #1e1e1e;
-  color: #ddd;
+  background: var(--bg);
+  color: var(--fg);
 }
 
 #app {
@@ -21,8 +30,8 @@ html, body {
   justify-content: space-between;
   gap: 12px;
   padding: 6px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: #252526;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
   flex-shrink: 0;
   min-height: 36px;
 }
@@ -31,7 +40,7 @@ html, body {
   font-size: 13px;
   font-weight: 600;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  color: #ddd;
+  color: var(--fg);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -55,6 +64,9 @@ html, body {
   white-space: nowrap;
 }
 
+/* Semantic (state) colors below are deliberately not the brand accent -
+   they need to read as "this needs attention" regardless of theme. */
+
 .wt-badge-readonly {
   background: #4a3c14;
   color: #e8c96a;
@@ -64,8 +76,8 @@ html, body {
   font-size: 12px;
   padding: 2px 8px;
   border-radius: 10px;
-  background: #3a3a3a;
-  color: #ccc;
+  background: #34333f;
+  color: var(--muted);
   white-space: nowrap;
 }
 
@@ -97,11 +109,11 @@ html, body {
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  background: #2d2d2d;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 2px 8px 2px 6px;
-  color: #ccc;
+  color: var(--muted);
   white-space: nowrap;
 }
 
@@ -125,14 +137,14 @@ html, body {
   justify-content: center;
   height: 100vh;
   width: 100vw;
-  background: #1e1e1e;
+  background: var(--bg);
 }
 
 .wt-terminal-box {
   font-size: 18px;
-  color: #ddd;
-  background: #2d2d2d;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--fg);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 32px 48px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);

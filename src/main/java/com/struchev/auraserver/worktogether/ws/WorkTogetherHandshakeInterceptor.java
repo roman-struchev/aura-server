@@ -1,6 +1,8 @@
 package com.struchev.auraserver.worktogether.ws;
 
+import com.struchev.auraserver.worktogether.ClientIp;
 import com.struchev.auraserver.worktogether.ConnectAuth;
+import com.struchev.auraserver.worktogether.RateLimiter;
 import com.struchev.auraserver.worktogether.SessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,14 +34,20 @@ public class WorkTogetherHandshakeInterceptor implements HandshakeInterceptor {
     private static final Pattern SESSION_PATH = Pattern.compile("/v1/sessions/([^/]+)/connect$");
 
     private final SessionService sessionService;
+    private final RateLimiter rateLimiter;
 
-    public WorkTogetherHandshakeInterceptor(SessionService sessionService) {
+    public WorkTogetherHandshakeInterceptor(SessionService sessionService, RateLimiter rateLimiter) {
         this.sessionService = sessionService;
+        this.rateLimiter = rateLimiter;
     }
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                     WebSocketHandler wsHandler, Map<String, Object> attributes) {
+        if (!rateLimiter.tryAcquire("connect:" + ClientIp.of(request))) {
+            response.setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+            return false;
+        }
         Matcher matcher = SESSION_PATH.matcher(request.getURI().getPath());
         if (!matcher.find()) {
             response.setStatusCode(HttpStatus.NOT_FOUND);

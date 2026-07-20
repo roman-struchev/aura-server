@@ -67,7 +67,7 @@ class SessionServiceTest {
         MintLinkResponse link = sessionService.mintLink(session.sessionId(),
                 new MintLinkRequest(Role.READ, 60L), "https://example.com");
 
-        assertThat(link.url()).isEqualTo("https://example.com/join/" + link.linkId());
+        assertThat(link.url()).isEqualTo("https://example.com/j/" + link.linkId());
         ConnectAuth auth = sessionService.resolveConnectAuth(session.sessionId(), link.token());
         assertThat(auth.role()).isEqualTo(Role.READ);
         assertThat(auth.linkId()).isEqualTo(link.linkId());

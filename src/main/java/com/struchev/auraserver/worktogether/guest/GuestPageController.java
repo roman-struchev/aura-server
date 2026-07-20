@@ -1,11 +1,14 @@
 package com.struchev.auraserver.worktogether.guest;
 
 import tools.jackson.databind.ObjectMapper;
+import com.struchev.auraserver.worktogether.ClientIp;
 import com.struchev.auraserver.worktogether.GuestLinkContext;
+import com.struchev.auraserver.worktogether.RateLimiter;
 import com.struchev.auraserver.worktogether.SessionService;
 import com.struchev.auraserver.worktogether.TokenService;
 import com.struchev.auraserver.worktogether.model.WtLink;
 import com.struchev.auraserver.worktogether.model.WtSession;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -34,20 +37,29 @@ public class GuestPageController {
 
     private final TokenService tokenService;
     private final SessionService sessionService;
+    private final RateLimiter rateLimiter;
     private final ObjectMapper objectMapper;
     private final String guestTemplate;
     private final String errorTemplate;
 
-    public GuestPageController(TokenService tokenService, SessionService sessionService, ObjectMapper objectMapper) {
+    public GuestPageController(TokenService tokenService, SessionService sessionService,
+                                RateLimiter rateLimiter, ObjectMapper objectMapper) {
         this.tokenService = tokenService;
         this.sessionService = sessionService;
+        this.rateLimiter = rateLimiter;
         this.objectMapper = objectMapper;
         this.guestTemplate = readClasspathResource("worktogether/guest-template.html");
         this.errorTemplate = readClasspathResource("worktogether/error-template.html");
     }
 
-    @GetMapping("/join/{linkId}")
-    public ResponseEntity<String> joinSession(@PathVariable String linkId) {
+    @GetMapping("/j/{linkId}")
+    public ResponseEntity<String> joinSession(@PathVariable String linkId, HttpServletRequest servletRequest) {
+        // linkId is short (see SessionService#mintLink) precisely because this endpoint
+        // is rate-limited - a brute-force guesser is bounded to the same per-minute
+        // budget as everyone else, regardless of how many ids they try.
+        if (!rateLimiter.tryAcquire("join:" + ClientIp.of(servletRequest))) {
+            return errorPage("Too many attempts — please try again in a minute.");
+        }
         GuestLinkContext ctx = sessionService.resolveGuestLink(linkId);
         if (ctx == null) {
             return errorPage("This link is invalid.");

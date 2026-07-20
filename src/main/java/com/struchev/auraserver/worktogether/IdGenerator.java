@@ -15,7 +15,18 @@ public final class IdGenerator {
     }
 
     public static String next(String prefix) {
-        byte[] bytes = new byte[15];
+        return next(prefix, 15);
+    }
+
+    /**
+     * @param randomBytes how much entropy to spend - 15 bytes (120 bits) for ids that
+     *                    are never brute-forceable over the network (session/connection
+     *                    ids); shorter is reasonable for ids meant to be short, human
+     *                    shareable links, as long as the endpoint that accepts them is
+     *                    rate-limited (see linkId in SessionService#mintLink).
+     */
+    public static String next(String prefix, int randomBytes) {
+        byte[] bytes = new byte[randomBytes];
         RANDOM.nextBytes(bytes);
         return prefix + ENCODER.encodeToString(bytes);
     }

@@ -1,5 +1,6 @@
 package com.struchev.auraserver.worktogether.web;
 
+import com.struchev.auraserver.worktogether.ClientIp;
 import com.struchev.auraserver.worktogether.RateLimiter;
 import com.struchev.auraserver.worktogether.SessionService;
 import com.struchev.auraserver.worktogether.dto.CreateSessionRequest;
@@ -46,7 +47,7 @@ public class SessionController {
     @PostMapping
     public ResponseEntity<CreateSessionResponse> createSession(@RequestBody CreateSessionRequest request,
                                                                  HttpServletRequest servletRequest) {
-        if (!rateLimiter.tryAcquire(clientIp(servletRequest))) {
+        if (!rateLimiter.tryAcquire("create:" + ClientIp.of(servletRequest))) {
             throw new RateLimitExceededException("Rate limit exceeded, try again shortly");
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(sessionService.createSession(request));
@@ -95,11 +96,4 @@ public class SessionController {
         return ResponseEntity.ok(sessionService.getStatus(sessionId));
     }
 
-    private static String clientIp(HttpServletRequest request) {
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
-    }
 }

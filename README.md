@@ -22,7 +22,7 @@ What's implemented, under `src/main/java/com/struchev/auraserver/worktogether/`:
   awareness frames between the Host and guests, enforces read-only links
   server-side, and closes sockets with the spec's close codes on
   expiry/revocation/session end (spec §4, §5).
-- **Guest-facing editor page** (`/join/{linkId}`) — a self-hosted Monaco +
+- **Guest-facing editor page** (`/j/{linkId}`) — a self-hosted Monaco +
   `y-websocket` + `y-monaco` page (source in `frontend/work-together-guest/`,
   built assets in `src/main/resources/static/work-together/`); see that
   directory's own notes for the rebuild command.

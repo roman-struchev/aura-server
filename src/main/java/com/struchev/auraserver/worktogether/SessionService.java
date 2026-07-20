@@ -43,7 +43,7 @@ public class SessionService {
     private final long maxSessionTtlCeilingSeconds;
 
     private final ConcurrentHashMap<String, WtSession> sessions = new ConcurrentHashMap<>();
-    // Reverse index so the short guest URL (/join/{linkId}) can be resolved
+    // Reverse index so the short guest URL (/j/{linkId}) can be resolved
     // without needing the full signed token round-tripped through it. Kept
     // in sync with `sessions`: entries are removed when the owning session
     // is torn down (see the private endSession(WtSession) overload).
@@ -103,7 +103,12 @@ public class SessionService {
         if (expiresAt.isAfter(session.expiresAt())) {
             expiresAt = session.expiresAt();
         }
-        String linkId = IdGenerator.next("lnk_");
+        // Short on purpose - this is what ends up in the human-shareable URL, so
+        // no "lnk_" prefix either (the JSON key already says what it is). 8 random
+        // bytes (64 bits) is still infeasible to brute-force, especially combined
+        // with the per-IP rate limit on GET /j/{linkId} and the WS connect endpoint
+        // (see GuestPageController, WorkTogetherHandshakeInterceptor).
+        String linkId = IdGenerator.next("", 8);
         WtLink link = new WtLink(linkId, sessionId, request.role(), now, expiresAt);
         session.addLink(link);
         linkIdToSessionId.put(linkId, sessionId);
@@ -113,7 +118,7 @@ public class SessionService {
         // shareable URL - much shorter, and just as unguessable (same amount
         // of random entropy). GuestPageController resolves it back to a
         // session/link and mints an equivalent WS token on the fly.
-        String url = publicBaseUrl + "/join/" + linkId;
+        String url = publicBaseUrl + "/j/" + linkId;
         return new MintLinkResponse(linkId, token, url, request.role(), expiresAt);
     }
 
