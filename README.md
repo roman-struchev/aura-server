@@ -53,18 +53,9 @@ describing the AuraPad project with a link to its GitHub repo.
 ./gradlew bootRun
 ```
 
-The guest editor's static assets (`src/main/resources/static/work-together/`
-and `src/main/resources/worktogether/guest-template.html`) are pre-built and
-committed to the repo — Gradle does not build the frontend, so plain
-`bootRun` is enough as long as you haven't touched
-`frontend/work-together-guest/`. If you do change that frontend, rebuild and
-re-copy the assets before running:
-
-```
-cd frontend/work-together-guest
-npm install
-npm run build
-```
+Guest editor assets are pre-built and committed, so plain `bootRun` is
+enough unless you edit `frontend/work-together-guest/` — then rebuild first
+with `npm run build` there.
 
 Deployment is via the existing GitHub Actions workflow
 (`.github/workflows/gradlew-publish-and-deploy.yml`) → Docker Hub → the
