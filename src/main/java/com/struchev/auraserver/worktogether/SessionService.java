@@ -103,12 +103,14 @@ public class SessionService {
         if (expiresAt.isAfter(session.expiresAt())) {
             expiresAt = session.expiresAt();
         }
-        // Short on purpose - this is what ends up in the human-shareable URL, so
-        // no "lnk_" prefix either (the JSON key already says what it is). 8 random
-        // bytes (64 bits) is still infeasible to brute-force, especially combined
-        // with the per-IP rate limit on GET /j/{linkId} and the WS connect endpoint
-        // (see GuestPageController, WorkTogetherHandshakeInterceptor).
-        String linkId = IdGenerator.next("", 8);
+        // Short and plain [A-Za-z0-9] on purpose - this is what ends up in the
+        // human-shareable URL, so no "lnk_" prefix (the JSON key already says
+        // what it is) and no base64 "-"/"_" to complicate reading it out loud.
+        // 11 alphanumeric characters (~65 bits of entropy) is still infeasible
+        // to brute-force, especially combined with the per-IP rate limit on
+        // GET /j/{linkId} and the WS connect endpoint (see GuestPageController,
+        // WorkTogetherHandshakeInterceptor).
+        String linkId = IdGenerator.nextAlphanumeric("", 11);
         WtLink link = new WtLink(linkId, sessionId, request.role(), now, expiresAt);
         session.addLink(link);
         linkIdToSessionId.put(linkId, sessionId);

@@ -122,9 +122,10 @@ const provider = new WebsocketProvider(
 
 const awareness = provider.awareness
 
+// y-monaco / the awareness convention expects the display name and color
+// nested inside a "user" object (specification.md §4.2), not as flat fields.
 awareness.setLocalState({
-  displayName: pickDisplayName(),
-  color: pickColor(),
+  user: { name: pickDisplayName(), color: pickColor() },
   role,
   cursor: null,
   selection: null
@@ -162,18 +163,18 @@ function renderParticipants () {
   const states = awareness.getStates()
   participantsEl.innerHTML = ''
   states.forEach((state) => {
-    if (!state || !state.displayName) return
+    if (!state || !state.user || !state.user.name) return
     const chip = document.createElement('div')
     chip.className = 'wt-participant'
 
     const dot = document.createElement('span')
     dot.className = 'wt-participant-dot'
-    dot.style.backgroundColor = state.color || '#888'
+    dot.style.backgroundColor = state.user.color || '#888'
     chip.appendChild(dot)
 
     const name = document.createElement('span')
     name.className = 'wt-participant-name'
-    name.textContent = state.displayName
+    name.textContent = state.user.name
     chip.appendChild(name)
 
     participantsEl.appendChild(chip)

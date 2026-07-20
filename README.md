@@ -17,7 +17,8 @@ through this server.
 What's implemented, under `src/main/java/com/struchev/auraserver/worktogether/`:
 
 - **REST API** (`/v1/sessions/...`) — create session, mint/revoke share links,
-  end session, get status (spec §3).
+  end session, get status (spec §3). Everything but session creation requires
+  `Authorization: Bearer <hostToken>` for that session.
 - **WebSocket relay** (`/v1/sessions/{sessionId}/connect`) — relays Yjs sync +
   awareness frames between the Host and guests, enforces read-only links
   server-side, and closes sockets with the spec's close codes on
