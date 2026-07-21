@@ -13,6 +13,8 @@
 import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
 import { MonacoBinding } from 'y-monaco'
+import * as encoding from 'lib0/encoding'
+import * as syncProtocol from 'y-protocols/sync'
 
 // -----------------------------------------------------------------------
 // Config
@@ -156,6 +158,59 @@ awareness.setLocalState({
 // through, corrupting the document. Let MonacoBinding own this exclusively.
 // eslint-disable-next-line no-new
 new MonacoBinding(ytext, editorModel, new Set([editor]), awareness)
+
+// -----------------------------------------------------------------------
+// Snapshot push (specification.md §4.4)
+// -----------------------------------------------------------------------
+//
+// A write-capable guest keeps the backend's cached full-state snapshot fresh
+// with its own edits, so if this guest is the only participant editing while
+// the Host is offline, a later solo reconnect (by anyone) still resyncs to
+// these edits rather than a stale pre-edit state. Read-only guests never push.
+// The receive side needs no code: the backend replays a snapshot as an
+// ordinary sync message, which the stock provider applies through its normal
+// sync handling.
+//
+// Frame layout mirrors the Host provider: [MESSAGE_SNAPSHOT][a full sync
+// message]. Tag 4 (not y-websocket's queryAwareness tag 3) so the backend
+// never confuses this guest's queryAwareness for a snapshot.
+const MESSAGE_SYNC = 0
+const MESSAGE_SNAPSHOT = 4
+// Throttle: at most one snapshot push per window. Kept generous - a snapshot
+// is the whole document and only matters in the rare "everyone offline at
+// once" case (see the Host provider's note); ordinary edits still relay
+// immediately as deltas, so a longer window just trims traffic.
+const SNAPSHOT_DEBOUNCE_MS = 20000
+
+if (role === 'write') {
+  let snapshotTimer = null
+
+  const sendSnapshot = () => {
+    // provider.wsconnected / provider.ws are the stock provider's own public
+    // connection handle - reused here rather than opening a second socket.
+    if (!provider.wsconnected || !provider.ws) return
+    const inner = encoding.createEncoder()
+    encoding.writeVarUint(inner, MESSAGE_SYNC)
+    syncProtocol.writeUpdate(inner, Y.encodeStateAsUpdate(ydoc))
+    const innerBytes = encoding.toUint8Array(inner)
+    const frame = new Uint8Array(innerBytes.length + 1)
+    frame[0] = MESSAGE_SNAPSHOT
+    frame.set(innerBytes, 1)
+    provider.ws.send(frame)
+  }
+
+  ydoc.on('update', (_update, origin) => {
+    // Only our own local edits: a remote update the provider just applied
+    // carries the provider as its origin, and its author pushes its own
+    // snapshot. Debounced so a burst of keystrokes coalesces into one push.
+    if (origin === provider) return
+    if (snapshotTimer) return
+    snapshotTimer = setTimeout(() => {
+      snapshotTimer = null
+      sendSnapshot()
+    }, SNAPSHOT_DEBOUNCE_MS)
+  })
+}
 
 // -----------------------------------------------------------------------
 // Participant panel
