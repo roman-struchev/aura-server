@@ -24,7 +24,7 @@ import java.time.Instant;
  * Control frames (tag 2) are server-originated only (§5) and never accepted
  * from clients.
  *
- * <p>Snapshot frames (tag 3, §4.4) are the one message a participant sends
+ * <p>Snapshot frames (tag 4, §4.4) are the one message a participant sends
  * that the backend does not relay but consumes: a write-capable client pushes
  * its full document state so the backend can replay it to a later
  * (re)connecting participant that no live peer is around to sync — the fix for
@@ -46,6 +46,11 @@ public class WorkTogetherWebSocketHandler extends AbstractWebSocketHandler {
     // y-websocket guest, which emits that on connect, can never be mistaken
     // for pushing a snapshot.
     private static final int TAG_SNAPSHOT = 4;
+    // Yjs sync subtypes. Both step-2 and update carry document content (Yjs
+    // applies each via applyUpdate); only step-1 is a content-free state-vector
+    // request. A read-only participant may send step-1 (to pull the document)
+    // but neither of the other two.
+    private static final int SYNC_SUBTYPE_STEP2 = 1;
     private static final int SYNC_SUBTYPE_UPDATE = 2;
 
     private static final String ATTR_CONNECTION_ID = "wtConnectionId";
@@ -114,8 +119,10 @@ public class WorkTogetherWebSocketHandler extends AbstractWebSocketHandler {
         }
         if (tag == TAG_SYNC && auth.role() == Role.READ && payload.remaining() >= 2) {
             int subtype = payload.get(payload.position() + 1) & 0xFF;
-            if (subtype == SYNC_SUBTYPE_UPDATE) {
-                log.debug("Dropping sync update from read-only connection {}", connectionId);
+            // Drop anything that carries document content (step-2 or update);
+            // let step-1 through so a read-only guest can still pull the doc.
+            if (subtype == SYNC_SUBTYPE_STEP2 || subtype == SYNC_SUBTYPE_UPDATE) {
+                log.debug("Dropping sync subtype {} from read-only connection {}", subtype, connectionId);
                 return; // specification.md §4.1: read-only writes are rejected server-side
             }
         }

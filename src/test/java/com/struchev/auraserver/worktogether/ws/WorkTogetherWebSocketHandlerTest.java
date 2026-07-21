@@ -149,4 +149,39 @@ class WorkTogetherWebSocketHandlerTest {
 
         assertThat(wtSession.latestSnapshot()).isNull();
     }
+
+    @Test
+    void readOnlySyncUpdateIsNotRelayed() throws Exception {
+        WebSocketSession reader = newClientSession("conn_a", Role.READ);
+        WebSocketSession other = newClientSession("conn_b", Role.WRITE);
+
+        // [tag=sync=0][subtype=update=2][...]
+        handler.handleBinaryMessage(reader, new BinaryMessage(new byte[] { 0, 2, 42 }));
+
+        verify(other, never()).sendMessage(any());
+    }
+
+    @Test
+    void readOnlySyncStep2IsNotRelayed() throws Exception {
+        WebSocketSession reader = newClientSession("conn_a", Role.READ);
+        WebSocketSession other = newClientSession("conn_b", Role.WRITE);
+
+        // [tag=sync=0][subtype=step2=1][...] - step-2 carries document content,
+        // so a read-only participant must not be able to push it either.
+        handler.handleBinaryMessage(reader, new BinaryMessage(new byte[] { 0, 1, 42 }));
+
+        verify(other, never()).sendMessage(any());
+    }
+
+    @Test
+    void readOnlySyncStep1IsRelayed() throws Exception {
+        WebSocketSession reader = newClientSession("conn_a", Role.READ);
+        WebSocketSession other = newClientSession("conn_b", Role.WRITE);
+
+        // [tag=sync=0][subtype=step1=0] - a content-free state-vector request a
+        // read-only guest legitimately sends to pull the current document.
+        handler.handleBinaryMessage(reader, new BinaryMessage(new byte[] { 0, 0 }));
+
+        verify(other).sendMessage(any());
+    }
 }
